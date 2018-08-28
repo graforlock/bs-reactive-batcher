@@ -6,7 +6,7 @@ open Time;
 type batch = { key: string, payload: Dom.event };
 type event = START_BATCHING | STOP_BATCHING;
 
-type bucket = { id: string, bucket: Js.Dict.t(array(Dom.event)), mutable size: int, time: int };
+type bucket = { id: string, bucket: Js.Dict.t(list(Dom.event)), mutable size: int, time: int };
 
 let postmanClient: postman = Sockets.start(~url="localhost:8000");
 let windowTarget = Window.asEventTarget(window);
@@ -44,8 +44,8 @@ let startLoop = Most.(
   |> map((stamp) => scan(
     (acc, {key, payload}) => {
       switch (Js.Dict.get(acc.bucket, key)) {
-      | Some(xs) => Js.Dict.set(acc.bucket, key, Array.append([| payload |], xs))
-      | None => Js.Dict.set(acc.bucket, key, [| payload |])
+      | Some(xs) => Js.Dict.set(acc.bucket, key, [payload, ...xs])
+      | None => Js.Dict.set(acc.bucket, key, [payload])
       }
       acc.size = acc.size + 1;
       acc
